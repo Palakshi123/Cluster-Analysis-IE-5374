@@ -56,8 +56,6 @@ cat("Internal validation for Kmeans clustering for k=4", calinhara(df1[,c(1,2)],
 
 
 a= cutree(hc,3)
-
-
 cat("Internal validation for Hierarchical clustering for k=4", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
 
 
@@ -83,6 +81,7 @@ cat(D$Country,sep="\n")
 #2. HEALTH
 #2.1. Health Exp % GDP, Infant Mortality Rate
 
+#Reading the data-set
 df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
 df1 <- df %>% select(6,9)
 
@@ -95,30 +94,22 @@ db = na.omit(db)
 
 fviz_nbclust(df1[,1:2],kmeans, method = "silhouette")
 
-
-#kmeans
+#Cluster Analysis using K-means clustering method
 km1 <- kmeans(df1[,1:2],8,nstart = 20)
 km1$cluster <- as.numeric(km1$cluster)
 
-
 db$class1 <- km1$cluster
 
-#hc clustering
+#Cluster Analysis using HC clustering method
 hc = hclust(dist(df1[,1:2]),method = "single")
 plot(hc)
 db$class2 <- cutree(hc,8)
 
-
-
 fviz_cluster(list(data= df1[,c(1:2)], cluster = km1$cluster), geom = "point", stand = FALSE)
 
-# Internal Validation - Maximizing CH
-
+# Internal Validation 
 cat("Internal validation for Kmeans clustering for k=8", calinhara(df1[,c(1,2)],db$class1), sep ="\n")
-
-
 a= cutree(hc,7)
-
 cat("Internal validation for Hierarchical clustering for k=8", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
 
 
@@ -139,7 +130,7 @@ cat(D$Country,sep="\n")
 #2. HEALTH
 #2.2 Influence of Health Expenditure/Capita on Life Expectancy for Males and Females  
 
-
+#Reading the data-set
 wi= read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
 
 Data1= wi[,c(12,7)]
@@ -159,7 +150,7 @@ db4 <- na.omit(Data4)
 fviz_nbclust(db1[,1:2], kmeans, method = "wss")
 fviz_nbclust(db2[,1:2], kmeans, method = "wss")
 
-#kmeans
+#Cluster Analysis using the K-means clustering method
 km1 <- kmeans(db1[,1:2],2,nstart = 20)
 km1$cluster <- as.numeric(km1$cluster)
 km2 <- kmeans(db2[,1:2],2,nstart = 20)
@@ -171,8 +162,7 @@ db2$class1 <- km2$cluster
 db3$class1 <- km1$cluster
 db4$class1 <- km2$cluster
 
-#hireracial
-
+#Cluster Analysis using the hirercial clustering method
 hc1 = hclust(dist(db1[,1:2]),method = "single")
 plot(hc1)
 db1$class2= cutree(hc1,2)
@@ -182,18 +172,14 @@ plot(hc2)
 db2$class2= cutree(hc2,2)
 
 # Internal Validation - Maximizing CH
-
 calinhara(db1[,c(1,2)],db1$class1)
 calinhara(db2[,c(1,2)],db2$class1)
 
-
-p3 = fviz_cluster(km1, db1[,c(1,2)], geom = "point", stand = FALSE) #Create a 2D plot for kmeans model
-
-p4 = fviz_cluster(list(data= db1[,c(1,2)], cluster = db1$class2), geom = "point", stand = FALSE) #Create a 2D plot for hierarchical model
-
-p5 = fviz_cluster(km2, db2[,c(1,2)], geom = "point", stand = FALSE) #Create a 2D plot for kmeans model
-
-p6 = fviz_cluster(list(data= db2[,c(1,2)], cluster = db2$class2), geom = "point", stand = FALSE) #Create a 2D plot for hierarchical model
+#Create a 2D plot for both kmeans model and hirercial model
+p3 = fviz_cluster(km1, db1[,c(1,2)], geom = "point", stand = FALSE) 
+p4 = fviz_cluster(list(data= db1[,c(1,2)], cluster = db1$class2), geom = "point", stand = FALSE) 
+p5 = fviz_cluster(km2, db2[,c(1,2)], geom = "point", stand = FALSE) 
+p6= fviz_cluster(list(data= db2[,c(1,2)], cluster = db2$class2), geom = "point", stand = FALSE) 
 
 
 plot_grid(as_grob(p5), as_grob(p3), labels=c("A", "B"), ncol = 2, nrow = 1)
@@ -227,7 +213,7 @@ cat(D$Country,sep="\n")
 #3 Development of Country
 #3.1  GDP vs. Working class of a country (primarily the % of population between the ages of 15-64)
 
-
+#Reading the data-set
 df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
 df1 <- df %>% select(5,16)
 
@@ -241,24 +227,21 @@ db = na.omit(db)
 fviz_nbclust(df1[,1:2],kmeans, method = "silhouette")
 
 
-#kmeans
+#Cluster analysis using the k-means clustering method
 km1 <- kmeans(df1[,1:2],3,nstart = 20)
 km1$cluster <- as.numeric(km1$cluster)
 
 db$class1 <- km1$cluster
 
-
-#hc clustering
+#Cluster analysis using the hirercial method
 hc = hclust(dist(df1[,1:2]),method = "single")
 plot(hc)
 db$class2 <- cutree(hc,3)
 
-# Internal Validation - Maximizing CH
-
+# Internal Validation 
 cat("Internal validation for Kmeans clustering for k=3", calinhara(df1[,c(1,2)],db$class1), sep ="\n")
 
 a= cutree(hc,4)
-
 
 cat("Internal validation for Hierarchical clustering for k=3", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
 
@@ -283,6 +266,7 @@ cat(D$Country,sep="\n")
 #3 Development of Country
 #3.2 % of Urban Population in countries vs. the mobile usage and internet usage in that country 
 
+#Reading the data-set
 df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
 df1 <- df %>% select(10,18,14)
 
@@ -295,20 +279,17 @@ db = na.omit(db)
 fviz_nbclust(df1[,1:3], kmeans, method = "wss")
 fviz_nbclust(df1[,1:3],kmeans, method = "silhouette")
 
-
-#kmeans
+#Cluster analysis using the k-means clustering method
 km1 <- kmeans(df1[,1:3],2,nstart = 20)
 km1$cluster <- as.numeric(km1$cluster)
 
 
 db$class1 <- km1$cluster
 
-#hc clustering
+#Cluster analysis using the hirerical method
 hc = hclust(dist(df1[,1:3]),method = "single")
 plot(hc)
 db$class2 <- cutree(hc,2)
-
-
 
 fviz_cluster(list(data= df1[,c(1:3)], cluster = km1$cluster), geom = "point", stand = FALSE)
 
@@ -318,9 +299,7 @@ cat("Internal validation for Kmeans clustering for k=2", calinhara(df1[,c(1,2)],
 
 a= cutree(hc,3)
 
-
 cat("Internal validation for Hierarchical clustering for k=2", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
-
 
 #Printing the countries in each cluster
 Data = db[,c(4,5)]
@@ -339,26 +318,24 @@ cat(D$Country,sep="\n")
 #3 Development 
 #3.3 % of population between the ages of 15-64 and the internet usage for those countries
 
+#Reading the data-set
 df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
 df1 <- df %>% select(16,10)
 
 df1 <- na.omit(df1)
 df1 <- scale(df1)
 
-
 db <- df %>% select(10,16,20)
 db = na.omit(db)
 fviz_nbclust(df1[,1:2],kmeans, method = "silhouette")
 
-
-#kmeans
+#Cluster analysis using the k-means clustering method
 km1 <- kmeans(df1[,1:2],2,nstart = 20)
 km1$cluster <- as.numeric(km1$cluster)
 
 db$class1 <- km1$cluster
 
-
-#hc clustering
+#Cluster analysis using the hirercial method
 hc = hclust(dist(df1[,1:2]),method = "single")
 plot(hc)
 db$class2 <- cutree(hc,2)
@@ -369,9 +346,7 @@ cat("Internal validation for Kmeans clustering for k=2", calinhara(df1[,c(1,2)],
 
 a= cutree(hc,3)
 
-
 cat("Internal validation for Hierarchical clustering for k=2", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
-
 
 fviz_cluster(list(data= df1[,c(1:2)], cluster = km1$cluster), geom = "point", stand = FALSE)
 
