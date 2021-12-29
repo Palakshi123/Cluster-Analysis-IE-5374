@@ -6,7 +6,7 @@ In this project, I presented with a data-set that looks at various socioeconomic
 
 #### 2. Health 
     1. Impact of Health Expenditure as a % GDP on Infant Mortality Rate 
-	 2. Influence of Health Expenditure/Capita on Life Expectancy for Males and Females 
+    2. Influence of Health Expenditure/Capita on Life Expectancy for Males and Females 
 
 #### 3. Development of a country 
     1. GDP vs. Working class of a country (primarily the % of population between the ages of 15-64)
