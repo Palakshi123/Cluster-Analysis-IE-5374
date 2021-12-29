@@ -1,0 +1,405 @@
+---
+title: "Project 1"
+author: "Palakshi, Manvika, Saharsh"
+date: "11/23/2021"
+output: html_document
+---
+
+#Task
+In this task we’re presented with a data-set that looks at various socioeconomic parameters for nearly 200 countries. We have divided our analysis on the basis of three major criterion:
+
+1. Business 
+    1. Ease of doing business (using Business Tax Rate, Days to start business)
+
+2. Health 
+    1. Impact of Health Expenditure as a % GDP on Infant Mortality Rate 
+	 2. Influence of Health Expenditure/Capita on Life Expectancy for Males and Females 
+
+3. Development of a country 
+    1. GDP vs. Working class of a country (primarily the % of population between the ages of 15-64)
+    2. % of Urban Population in countries vs. the mobile usage and internet usage in that country 
+    3. % of population between the ages of 15-64 and the internet usage for those countries
+    
+    
+```{r}
+library(NbClust)
+library(factoextra)
+library(ClusterR)
+library(magrittr)
+library(dplyr)
+library(fpc)
+library(plotly)
+library(ggplot2)
+library(cowplot)
+```
+    
+```{r}
+
+#1. BUSINESS 
+#1.1 Days to start buisness, Buisness Tax Rate
+
+#Reading the data-set
+df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
+df1 <- df %>% select(3,2)
+
+df1 <- na.omit(df1)
+df1 <- scale(df1)
+
+
+db <- df %>% select(2,3,20)
+db = na.omit(db)
+
+#Finding the number of cluster
+fviz_nbclust(df1[,1:2],kmeans, method = "silhouette")
+
+
+#Cluster Analysis using k-means method
+km1 <- kmeans(df1[,1:2],4,nstart = 20)
+km1$cluster <- as.numeric(km1$cluster)
+db$class1 <- km1$cluster
+
+
+#Cluster Analysis using HC clustering method
+hc = hclust(dist(df1[,1:2]),method = "single")
+plot(hc)
+db$class2 <- cutree(hc,4)
+
+fviz_cluster(list(data= df1[,c(1:2)], cluster = km1$cluster), geom = "point", stand = FALSE)
+
+#Finding the Internal Validation
+cat("Internal validation for Kmeans clustering for k=4", calinhara(df1[,c(1,2)],db$class1), sep ="\n")
+
+
+a= cutree(hc,3)
+
+
+cat("Internal validation for Hierarchical clustering for k=4", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
+
+
+#Printing the countries in each cluster
+Data = db[,c(3,4)]
+for (i in c(1:4))
+{
+D <- Data %>% filter(Data$class1==i)
+cat(sep= "\n")
+cat("The countries in cluster", i, "are:")
+cat(sep= "\n")
+cat(D$Country,sep="\n")
+}
+```
+    
+#Insight 1.1 : In the graph above, we have clustered countries based on business tax rate and days to start business with the former being on the y axis and the latter being on the x-axis. From the plot above we can we can see that countries having a lower business tax rate take lesser days for the business to start. One can deduce business friendly countries using this observation, the countries that fall in the red cluster are more likely to start a business and pay a lesser business tax rate simultaneously. 
+ 
+#There are five outliers in this case, clubbed in two clusters. There could be multiple factors why they dont fall in any clusters, one of them being stringent fiscal policies, government regulations, etc. 
+
+#We selected the value for number of cluster as 4 because the value of ch is maximum for k=4. 
+
+```{r}
+#2. HEALTH
+#2.1. Health Exp % GDP, Infant Mortality Rate
+
+df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
+df1 <- df %>% select(6,9)
+
+df1 <- na.omit(df1)
+df1 <- scale(df1)
+
+
+db <- df %>% select(6,9,20)
+db = na.omit(db)
+
+fviz_nbclust(df1[,1:2],kmeans, method = "silhouette")
+
+
+#kmeans
+km1 <- kmeans(df1[,1:2],8,nstart = 20)
+km1$cluster <- as.numeric(km1$cluster)
+
+
+db$class1 <- km1$cluster
+
+#hc clustering
+hc = hclust(dist(df1[,1:2]),method = "single")
+plot(hc)
+db$class2 <- cutree(hc,8)
+
+
+
+fviz_cluster(list(data= df1[,c(1:2)], cluster = km1$cluster), geom = "point", stand = FALSE)
+
+# Internal Validation - Maximizing CH
+
+cat("Internal validation for Kmeans clustering for k=8", calinhara(df1[,c(1,2)],db$class1), sep ="\n")
+
+
+a= cutree(hc,7)
+
+cat("Internal validation for Hierarchical clustering for k=8", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
+
+
+#Printing the countries in each cluster
+Data = db[,c(3,4)]
+for (i in c(1:4))
+{
+D <- Data %>% filter(Data$class1==i)
+cat(sep= "\n")
+cat("The countries in cluster", i, "are:")
+cat(sep= "\n")
+cat(D$Country,sep="\n")
+}
+```
+#Insight 2.1 : This graph is an attempt to see the relation between Health Exp as a % of GDP and Infant Mortality Rate. The data for both has been scaled to maintain uniformity. We see 7 major clusters in this plot, the general notion is that countries that have a higher health expenditure as a % of GDP should have a lower infant mortality rate, assuming that a higher percentage means better health care. However, as we can see from the plot above, cluster 1,3,7 and 8 follow this notion but clusters 5 and 4 don't necessarily abide. This is because a higher percentage of health expenditure as a percentage of GDP don't necessarily mean a large absolute amount and may or may not accurantely describe the condition of healthcare in a country. Moreover, a higher infant mortality rate can stem from factors other than the condition of healthcare in a country. 
+
+```{r}
+#2. HEALTH
+#2.2 Influence of Health Expenditure/Capita on Life Expectancy for Males and Females  
+
+
+wi= read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
+
+Data1= wi[,c(12,7)]
+Data2= wi[,c(13,7)]
+db1 <- na.omit(Data1)
+db1 <- as.data.frame(scale(db1))
+db2 <- na.omit(Data2)
+db2 <- as.data.frame(scale(db2))
+
+Data3= wi[,c(12,7,20)]
+Data4= wi[,c(13,7,20)]
+db3 <- na.omit(Data3)
+db4 <- na.omit(Data4)
+
+
+#Elbow Method
+fviz_nbclust(db1[,1:2], kmeans, method = "wss")
+fviz_nbclust(db2[,1:2], kmeans, method = "wss")
+
+#kmeans
+km1 <- kmeans(db1[,1:2],2,nstart = 20)
+km1$cluster <- as.numeric(km1$cluster)
+km2 <- kmeans(db2[,1:2],2,nstart = 20)
+km2$cluster <- as.numeric(km2$cluster)
+
+#crosschecking the output
+db1$class1 <- km1$cluster
+db2$class1 <- km2$cluster
+db3$class1 <- km1$cluster
+db4$class1 <- km2$cluster
+
+#hireracial
+
+hc1 = hclust(dist(db1[,1:2]),method = "single")
+plot(hc1)
+db1$class2= cutree(hc1,2)
+
+hc2 = hclust(dist(db2[,1:2]),method = "single")
+plot(hc2)
+db2$class2= cutree(hc2,2)
+
+# Internal Validation - Maximizing CH
+
+calinhara(db1[,c(1,2)],db1$class1)
+calinhara(db2[,c(1,2)],db2$class1)
+
+
+p3 = fviz_cluster(km1, db1[,c(1,2)], geom = "point", stand = FALSE) #Create a 2D plot for kmeans model
+
+p4 = fviz_cluster(list(data= db1[,c(1,2)], cluster = db1$class2), geom = "point", stand = FALSE) #Create a 2D plot for hierarchical model
+
+p5 = fviz_cluster(km2, db2[,c(1,2)], geom = "point", stand = FALSE) #Create a 2D plot for kmeans model
+
+p6 = fviz_cluster(list(data= db2[,c(1,2)], cluster = db2$class2), geom = "point", stand = FALSE) #Create a 2D plot for hierarchical model
+
+
+plot_grid(as_grob(p5), as_grob(p3), labels=c("A", "B"), ncol = 2, nrow = 1)
+
+
+#Printing the countries in each cluster
+Data5 = db3[,c(3,4)]
+for (i in c(1:2))
+{
+D <- Data5 %>% filter(Data5$class1==i)
+cat(sep= "\n")
+cat("The countries in cluster", i, "are:")
+cat(sep= "\n")
+cat(D$Country,sep="\n")
+}
+
+Data6 = db4[,c(3,4)]
+for (i in c(1:2))
+{
+D <- Data6 %>% filter(Data6$class1==i)
+cat(sep= "\n")
+cat("The countries in cluster", i, "are:")
+cat(sep= "\n")
+cat(D$Country,sep="\n")
+}
+```
+#Insight 2.2 : In these parallel plots we're looking at the influence of Health Expenditure per capita on the life expectancy of males and females. The idea behind plotting males and females differently was to assess if the health expenditure per capita has anything to do with the life expectancy when it comes to gender. To our surprise, both the plots are similar and have similar cluster structures, however, its the countries in both the clusters which make all the difference. Even though "per capita" refers to every individual of that country and is an average irrespective of gender or income, it doesn't necessarily imply an equal share of healthcare resources for both genders. 
+
+
+```{r}
+#3 Development of Country
+#3.1  GDP vs. Working class of a country (primarily the % of population between the ages of 15-64)
+
+
+df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
+df1 <- df %>% select(5,16)
+
+df1 <- na.omit(df1)
+df1 <- scale(df1)
+
+
+db <- df %>% select(5,16,20)
+db = na.omit(db)
+
+fviz_nbclust(df1[,1:2],kmeans, method = "silhouette")
+
+
+#kmeans
+km1 <- kmeans(df1[,1:2],3,nstart = 20)
+km1$cluster <- as.numeric(km1$cluster)
+
+db$class1 <- km1$cluster
+
+
+#hc clustering
+hc = hclust(dist(df1[,1:2]),method = "single")
+plot(hc)
+db$class2 <- cutree(hc,3)
+
+# Internal Validation - Maximizing CH
+
+cat("Internal validation for Kmeans clustering for k=3", calinhara(df1[,c(1,2)],db$class1), sep ="\n")
+
+a= cutree(hc,4)
+
+
+cat("Internal validation for Hierarchical clustering for k=3", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
+
+
+fviz_cluster(list(data= df1[,c(1:2)], cluster = km1$cluster), geom = "point", stand = FALSE)
+
+#Printing the countries in each cluster
+Data = db[,c(3,4)]
+for (i in c(1:3))
+{
+D <- Data %>% filter(Data$class1==i)
+cat(sep= "\n")
+cat("The countries in cluster", i, "are:")
+cat(sep= "\n")
+cat(D$Country,sep="\n")
+}
+
+```
+#Insight 3.1 : This plot is to understand if a higher working population ( % of population in the 15-64 age bracket) results in a higher GDP. The blue cluster shows countries which don’t have a significantly high GDP despite a decent sized of population in the 15-64 age group, by decent sized we mean not a very high proportion of population in the 15-64 age group. The green cluster does follow our hypothesis to an extent but not very evidently. Countries such as Bhutan, Korea, Nepal and Qatar show a higher GDP compared to other countries in the green cluster but they don’t have a higher working population. Despite a high percent of population in the 15-64 age group, the rise is GDP is not extreme, it is moderate. There are 4 outliers for this plot which form the red cluster, these are china, Japan, United States, Venezuela, RB. Even though the proportion of population in 15-64 age group is lesser than some countries, the GDP of these countries is significantly high.
+
+```{r}
+#3 Development of Country
+#3.2 % of Urban Population in countries vs. the mobile usage and internet usage in that country 
+
+df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
+df1 <- df %>% select(10,18,14)
+
+df1 <- na.omit(df1)
+df1 <- scale(df1)
+
+
+db <- df %>% select(18,10,14,20)
+db = na.omit(db)
+fviz_nbclust(df1[,1:3], kmeans, method = "wss")
+fviz_nbclust(df1[,1:3],kmeans, method = "silhouette")
+
+
+#kmeans
+km1 <- kmeans(df1[,1:3],2,nstart = 20)
+km1$cluster <- as.numeric(km1$cluster)
+
+
+db$class1 <- km1$cluster
+
+#hc clustering
+hc = hclust(dist(df1[,1:3]),method = "single")
+plot(hc)
+db$class2 <- cutree(hc,2)
+
+
+
+fviz_cluster(list(data= df1[,c(1:3)], cluster = km1$cluster), geom = "point", stand = FALSE)
+
+# Internal Validation - Maximizing CH
+
+cat("Internal validation for Kmeans clustering for k=2", calinhara(df1[,c(1,2)],db$class1), sep ="\n")
+
+a= cutree(hc,3)
+
+
+cat("Internal validation for Hierarchical clustering for k=2", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
+
+
+#Printing the countries in each cluster
+Data = db[,c(4,5)]
+for (i in c(1:2))
+{
+D <- Data %>% filter(Data$class1==i)
+cat(sep= "\n")
+cat("The countries in cluster", i, "are:")
+cat(sep= "\n")
+cat(D$Country,sep="\n")
+}
+```
+#Insight 3.2 : In this part we are trying to assess the development of a country based on the % of population in urban areas against the mobile and internet usage. Technological advancement is one of the essential factors which help in examining how developed a country is. The red cluster represents a high mobile and internet usage as compared to the blue cluster. The Y-axis is essentially the % of population in urban areas, it is evident from this plot that the % of population in the urban areas has less to do with the internet and mobile usage. People in rural areas are getting used to technology at an alarmingly high rate (This is our inference from this plot). Countries that show a high internet and mobile usage are Egypt, Arab Rep.,Morocco, South Africa, Hong Kong SAR, China, etc.
+
+```{r}
+#3 Development 
+#3.3 % of population between the ages of 15-64 and the internet usage for those countries
+
+df <- read.csv('D:/SEM - I/FDA/Project 1/Datasets/World Indicators.csv')
+df1 <- df %>% select(16,10)
+
+df1 <- na.omit(df1)
+df1 <- scale(df1)
+
+
+db <- df %>% select(10,16,20)
+db = na.omit(db)
+fviz_nbclust(df1[,1:2],kmeans, method = "silhouette")
+
+
+#kmeans
+km1 <- kmeans(df1[,1:2],2,nstart = 20)
+km1$cluster <- as.numeric(km1$cluster)
+
+db$class1 <- km1$cluster
+
+
+#hc clustering
+hc = hclust(dist(df1[,1:2]),method = "single")
+plot(hc)
+db$class2 <- cutree(hc,2)
+
+# Internal Validation - Maximizing CH
+
+cat("Internal validation for Kmeans clustering for k=2", calinhara(df1[,c(1,2)],db$class1), sep ="\n")
+
+a= cutree(hc,3)
+
+
+cat("Internal validation for Hierarchical clustering for k=2", calinhara(df1[,c(1,2)],db$class2), sep ="\n")
+
+
+fviz_cluster(list(data= df1[,c(1:2)], cluster = km1$cluster), geom = "point", stand = FALSE)
+
+#Printing the countries in each cluster
+Data = db[,c(3,4)]
+for (i in c(1:2))
+{
+D <- Data %>% filter(Data$class1==i)
+cat(sep= "\n")
+cat("The countries in cluster", i, "are:")
+cat(sep= "\n")
+cat(D$Country,sep="\n")
+}
+
+```
+#Insight 3.3 : Through this plot, we’re trying to understand if the notion of young people / working class using the internet more compared to any other age group is actually true or not. The idea is to cluster countries based on internet usage against target age group. It is evident from this plot that people falling in the 15-64 category do in fact use the internet more. As the % of people in the 15-64 age group increases, so does the internet usage. This is primarily seen in tech savvy and developing/developed countries such as china, Japan, Korea, United Kingdom, United States, etc.
